@@ -3,19 +3,20 @@
 //find /mnt/ext4/opptak/Phineas\ and\ Ferb/2015*.ts -exec php snapshottitle.php --config phineas_ferb_hd {} \;
 //find /mnt/ext4/opptak/24\ timer\ på\ legevakten/2017*.ts -exec php snapshottitle.php --config 24hoursae {} \;
 //find "/mnt/ext4/opptak/Milo Murphys lov" -name "2018*ts" -type f -size +10M -exec php snapshottitle.php -config milo {} \;
+require 'vendor/autoload.php';
 
 end($argv);
 $file=$argv[key($argv)];
 
 echo "Start: ".basename($file)."\n";
-require 'tools/color.php';
+
 $color_tools=new color;
-require 'tools/dependcheck.php';
+
 date_default_timezone_set('GMT');
 $dependcheck=new dependcheck;
 $debug=true;
 require 'color_check.php';
-require 'tools/video.php';
+
 $video=new video;
 
 $options = getopt("",array('config:','startpos:', 'noimage', 'multi'));
