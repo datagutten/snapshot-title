@@ -1,0 +1,26 @@
+<!ELEMENT title (crop?, search+, title_offset, color, limit?, debug?)>
+        <!ELEMENT crop EMPTY>
+        <!ATTLIST crop x CDATA #REQUIRED>
+        <!ATTLIST crop y CDATA #REQUIRED>
+        <!ATTLIST crop h CDATA #REQUIRED>
+        <!ATTLIST crop w CDATA #REQUIRED>
+<!ELEMENT search (position+)>
+        <!ELEMENT position EMPTY>
+        <!ATTLIST position x CDATA #REQUIRED>
+        <!ATTLIST position y CDATA #REQUIRED>
+        <!ATTLIST position color CDATA>
+<!ELEMENT title_offset (min, max)>
+        <!ELEMENT min (#PCDATA)>
+        <!ELEMENT max (#PCDATA)>
+<!ELEMENT color (reference, low, high)>
+        <!ELEMENT reference (#PCDATA)>
+        <!ELEMENT low (#PCDATA)>
+        <!ELEMENT high (#PCDATA)>
+<!ELEMENT limit (#PCDATA)>
+    <!ATTLIST limit type (time|frames)
+<!ELEMENT debug (frame?, from?, to?, scan_start?, scan_end?)>
+        <!ELEMENT frame (#PCDATA)>
+        <!ELEMENT from (#PCDATA)>
+        <!ELEMENT to (#PCDATA)>
+        <!ELEMENT scan_start (#PCDATA)>
+        <!ELEMENT scan_end (#PCDATA)>

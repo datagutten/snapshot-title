@@ -41,8 +41,14 @@ $folder_crop=$folder.'/crop';
 
 
 
-require 'snapshottitle_config/config_'.$options['config'].'.php';
-
+$xml_config_file = __DIR__.'/snapshottitle_config/'.$options['config'].'.xml';
+if(file_exists($xml_config_file)) {
+    $xml = simplexml_load_file($xml_config_file, 'SimpleXMLElement'/*, LIBXML_DTDVALID*/);
+    if(!empty($xml->{'debug'}->{'scan_start'}))
+        $scan_start = (int)$xml->{'debug'}->{'scan_start'};
+    if(!empty($xml->{'debug'}->{'scan_end'}))
+        $scan_end = (int)$xml->{'debug'}->{'scan_end'};
+}
 
 $duration = $video->duration($file);
 $duration_string = $video->seconds_to_time($duration);
@@ -76,6 +82,9 @@ $cmdlist="";
 
 for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
 {
+    if(!empty($scan_start) && $pos<$scan_start)
+        continue;
+
 	$imagefile=$folder_snapshots.'/'.str_pad($pos,3,'0',STR_PAD_LEFT).'.png';
     $imagefile = sprintf('%s/%04d.png', $folder_snapshots, $pos);
 
@@ -156,13 +165,34 @@ for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
 	
 	if(!isset($intropos)) //Search for intro
 	{
-		printf("Searching %s\n",$pathinfo['basename']);
-		$check = color_check($im, $positions, $config['color_ref'], $config['limit_low'], $config['limit_high']);
+		printf("Searching %s\r",$pathinfo['basename']);
+		$color_debug = false;
+		if(!empty($xml) && !empty($xml->{'debug'}))
+        {
+            if(!empty($xml->{'debug'}->{'frame'}) && $pos===(int)$xml->{'debug'}->{'frame'})
+                $color_debug = true;
+            else
+                $color_debug = false;
+        }
+
+		$positions = [];
+        foreach ($xml->{'search'}->{'position'} as $position_xml)
+        {
+            $attributes = $position_xml->attributes();
+            $position = [(int)$attributes->{'x'}, (int)$attributes->{'y'}];
+            if(!empty($attributes->{'color'}))
+                $position['color'] = hexdec($attributes->{'color'});
+            $positions[] = $position;
+        }
+
+		//$check = color_check($im, $positions, $config['color_ref'], $config['limit_low'], $config['limit_high'], $color_debug);
+        $check = color_check($im, $positions, hexdec($xml->{'color'}->{'reference'}), (int)$xml->{'color'}->{'low'}, (int)$xml->{'color'}->{'high'}, $color_debug);
+
 		if($check===false)
 		    continue;
         else
         {
-            printf("Match at frame %d\n", $pos);
+            printf("Intro found at frame %d\n", $pos);
         }
 
 		//$inc=2;
@@ -174,24 +204,41 @@ for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
 		//continue;
 	}
 	else //Find title
-	{	
-		if($pos<$intropos+$title_min_offset) //Title is not before X frames after intro
-			continue;
-
-        if(!isset($fullsize)) //Crop images to keep only title
+	{
+	    if($pos<$intropos+(int)$xml->{'title_offset'}->{'min'}) //Title is not before X frames after intro
         {
-            $im2=imagecreatetruecolor($title_w,$title_h);
-            imagecopy($im2,$im,0,0,$title_x,$title_y,$title_w,$title_h);
-            if(!file_exists($folder_crop))
-                mkdir($folder_crop);
-            imagepng($im2,$folder_crop.'/'.basename($imagefile));
-            copy($folder_crop.'/'.basename($imagefile),$folder.'/z'.basename($imagefile));
+            printf("\nTitle must be least %d seconds from intro, skip frame %d\n", $xml->{'title_offset'}->{'min'}, $pos);
+            continue;
         }
-        else
-            imagepng($im, $folder.'/z'.basename($imagefile));
+
+        $title_file = sprintf('%s/z%d.png', $folder, $pos);
+
+        if(isset($xml->{'crop'})) //Crop images to keep only title
+        {
+            $crop = [];
+            foreach($xml->{'crop'}->attributes() as $attribute=>$value)
+            {
+                $crop[$attribute] = (int)$value;
+            }
+            print_r($crop);
+
+            printf("\nSaving cropped title frame %d\n", $pos);
+            printf("Cropping frame %d X: %d-%d Y: %d-%d\n", $pos, $crop['x'], $crop['x'] + $crop['w'], $crop['y'], $crop['y'] + $crop['h']);
+            //$im2=imagecreatetruecolor($title_w,$title_h);
+            $im2 = imagecreatetruecolor($crop['w'], $crop['h']);
+            //imagecopy($im2,$im,0,0,$title_x,$title_y,$title_w,$title_h);
+            imagecopy($im2, $im, 0, 0, $crop['x'], $crop['y'], $crop['w'], $crop['h']);
+            imagepng($im2, $title_file);
+
+        }
+        else {
+            printf("\nSaving title frame %d\n", $pos);
+            copy($imagefile, $title_file);
+        }
 
 	}
-	if($pos>=$intropos+$titleoffset)
+
+    if($pos>=$intropos+(int)$xml->{'title_offset'}->{'max'})
     {
         if(!isset($options['multi']))
             break;
@@ -199,8 +246,19 @@ for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
         {
             unset($intropos);
         }
-
+    }
+	if(isset($xml))
+    {
+        $limit_type = $xml->{'limit'}->attributes()->{'type'};
+        if($limit_type=='frames' && $pos>$xml->{'limit'} && empty($intropos)) {
+            printf("Limit %d reached\n", $xml->{'limit'});
+            break;
+        }
     }
 
+    if(!empty($scan_end) && $pos>=$scan_end) {
+        printf("Stopping scan at %d\n", $pos);
+        break;
+    }
 }
 shell_exec("chmod -R 777 \"$folder\"");
