@@ -1,4 +1,4 @@
-<!ELEMENT title (crop?, search+, title_offset, color, limit?, debug?)>
+<!ELEMENT title (crop?, search+, title_offset, color, limit?, debug?, start_position?)>
         <!ELEMENT crop EMPTY>
         <!ATTLIST crop x CDATA #REQUIRED>
         <!ATTLIST crop y CDATA #REQUIRED>
@@ -24,3 +24,4 @@
         <!ELEMENT to (#PCDATA)>
         <!ELEMENT scan_start (#PCDATA)>
         <!ELEMENT scan_end (#PCDATA)>
+<!ELEMENT start_position (#PCDATA)>

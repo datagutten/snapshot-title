@@ -60,12 +60,14 @@ if(!file_exists($folder_snapshots))
 	$filesystem->mkdir($folder_snapshots);
 }
 
-if(!isset($options['startpos']))
-	$pos=1;
+if(!empty($options['startpos']))
+	$pos = $options['startpos'];
+elseif(!empty($xml->{'start_position'}))
+    $pos = (int)$xml->{'start_position'};
 else
-	$pos=$options['startpos'];
+	$pos= 1;
 
-$cmdlist="";
+printf("Starting at position %d\n", $pos);
 
 $ffmpeg = FFMpeg::create();
 $video_av = $ffmpeg->open($file);
