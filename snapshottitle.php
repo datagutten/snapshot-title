@@ -25,6 +25,8 @@ date_default_timezone_set('GMT');
 $debug=true;
 
 $options = getopt("",array('config:','startpos:', 'noimage', 'multi', 'keep'));
+if(empty($options))
+    die("Usage: php snapshottitle.php --config=[config file] [video file]\n");
 
 if(!file_exists($file))
 	die("File not found: {$file}\n");
