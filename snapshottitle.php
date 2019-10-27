@@ -3,7 +3,16 @@
 //find /mnt/ext4/opptak/Phineas\ and\ Ferb/2015*.ts -exec php snapshottitle.php --config phineas_ferb_hd {} \;
 //find /mnt/ext4/opptak/24\ timer\ på\ legevakten/2017*.ts -exec php snapshottitle.php --config 24hoursae {} \;
 //find "/mnt/ext4/opptak/Milo Murphys lov" -name "2018*ts" -type f -size +10M -exec php snapshottitle.php -config milo {} \;
+use FFMpeg\Coordinate\TimeCode;
+use FFMpeg\FFMpeg;
+use Symfony\Component\Filesystem\Filesystem;
+
 require 'vendor/autoload.php';
+$filesystem = new Filesystem();
+$dependcheck=new dependcheck;
+$video=new video;
+
+require 'color_check.php';
 
 end($argv);
 $file=$argv[key($argv)];
@@ -13,13 +22,9 @@ echo "Start: ".basename($file)."\n";
 $color_tools=new color;
 
 date_default_timezone_set('GMT');
-$dependcheck=new dependcheck;
 $debug=true;
-require 'color_check.php';
 
-$video=new video;
-
-$options = getopt("",array('config:','startpos:', 'noimage', 'multi'));
+$options = getopt("",array('config:','startpos:', 'noimage', 'multi', 'keep'));
 
 if(!file_exists($file))
 	die("File not found: {$file}\n");
