@@ -55,23 +55,10 @@ $duration_string = $video->seconds_to_time($duration);
 
 echo "Duration is $duration\n";
 
-if(!file_exists($folder_snapshots.'/'))
+if(!file_exists($folder_snapshots))
 {
-	echo "Creating snapshots for {$pathinfo_infile['basename']}\n";
-	mkdir($folder_snapshots.'/',0777,true);
-
-	if(isset($options['multi']))
-        $stoptime=$duration;
-	elseif(!isset($stoptime))
-		$stoptime='00:20:00.000';
-
-	/*shell_exec("ffmpeg -loglevel error -stats -i \"{$file}\" -to $stoptime -f image2 -vf fps=fps=1/2 \"$folder_snapshots/%03d.png\"");
-	var_Dump($cmd);
-	if(!file_exists($folder_snapshots.'/001.png'))
-		die("Snapshot creation failed\n");*/
+	$filesystem->mkdir($folder_snapshots);
 }
-if(!isset($titleoffset))
-	die("Title offset missing\n");
 
 if(!isset($options['startpos']))
 	$pos=1;
@@ -80,7 +67,10 @@ else
 
 $cmdlist="";
 
-for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
+$ffmpeg = FFMpeg::create();
+$video_av = $ffmpeg->open($file);
+
+for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
 {
     if(!empty($scan_start) && $pos<$scan_start)
         continue;
@@ -88,84 +78,17 @@ for($inc=1; $pos<=$duration/2; $pos=$pos+$inc)
 	$imagefile=$folder_snapshots.'/'.str_pad($pos,3,'0',STR_PAD_LEFT).'.png';
     $imagefile = sprintf('%s/%04d.png', $folder_snapshots, $pos);
 
-	//$timestring=date('H:i:s',$pos-3600);
-    if($pos==1)
-	    $timestring = $video->seconds_to_time($pos-1);
-    else
-        $timestring = $video->seconds_to_time(($pos*2)-1);
 	//No more pictures
-	if(!file_exists($imagefile) && !isset($options['noimage']))
-    {
-		//No more pictures, get 100 new
-		mkdir($tmp_dir="$folder_snapshots/tmp",0777,true);
-		var_dump($folder_snapshots);
-		
-		if(isset($titlerange))
-		{
-			foreach(range($titlerange[0],$titlerange[1],1) as $pos)
-			{
-				echo "Range $pos\n";
-				symlink($file=$folder_snapshots.'/'.str_pad($pos,3,'0',STR_PAD_LEFT).'.png',
-                        $link=$folder.'/z'.str_pad($pos,3,'0',STR_PAD_LEFT).'.png');
-				var_dump($link);
-			}
-			break;
-		}
-
-		$pics=100;
-		if($pos+$pics>$duration/2)
-		    $pics=$duration/2-$pos;
-
-        $cmd="ffmpeg -loglevel error -stats -i \"{$file}\" -ss $timestring.000 -f image2 -vf fps=fps=1/2 -vframes $pics \"$tmp_dir/%04d.png\"";
-        printf("Creating %d images from position %s, total duration is %s (%d seconds)\n",
-            $pics,
-            $timestring,
-            $duration_string,
-            $duration);
-        //var_dump($cmd);
-		shell_exec($cmd);
-
-		/*if(!file_exists($folder_snapshots.'/tmp/1.png'))
-			die("Snapshot creation failed\n");*/
-
-		for($count=1; $count<=$pics; $count++)
-		{
-		    $tmp_file=sprintf('%s/tmp/%04d.png', $folder_snapshots, $count);
-            //When count is 1 the image is the current position
-            $padded_file = sprintf('%s/%04d.png', $folder_snapshots, $pos+$count-1);
-
-			//if(!file_exists("$folder_snapshots/tmp/$count.png"))
-            if(!file_exists($tmp_file) && $pos+$count-1<=$duration)
-			{
-			    throw new Exception(sprintf('File %s not found, snapshot creation failed', $tmp_file));
-				//echo "File $count not found\n";
-				//break;
-			}
-            else
-                //$padded_file = str_pad($pos+$count-1,3,'0',STR_PAD_LEFT).'.png');
-                //$padded_file = sprintf('%s/%04d.png', $folder_snapshots, $pos+$count-1);
-                rename($tmp_file, $padded_file);
-			    //rename("$folder_snapshots/tmp/$count.png","$folder_snapshots/".str_pad($pos+$count-1,3,'0',STR_PAD_LEFT).'.png');
-		}
-		rmdir($tmp_dir); //Remove the temporary directory
-		//die();
-
-	}
-	if(!file_exists($imagefile))
-	{
-		trigger_error("No image file found: $imagefile",E_USER_WARNING);
-		continue;
-	}
-	
-	$pathinfo=pathinfo($imagefile);
-	if($pathinfo['extension']!='png')
-		continue;
+	if(!file_exists($imagefile) && !isset($options['noimage'])) {
+        $frame = $video_av->frame(TimeCode::fromSeconds($pos));
+        $frame->save($imagefile);
+    }
 
 	$im=imagecreatefrompng($imagefile);
 	
 	if(!isset($intropos)) //Search for intro
 	{
-		printf("Searching %s\r",$pathinfo['basename']);
+		printf("Searching %d\r", $pos);
 		$color_debug = false;
 		if(!empty($xml) && !empty($xml->{'debug'}))
         {
