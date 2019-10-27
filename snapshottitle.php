@@ -184,4 +184,6 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
         break;
     }
 }
+if(isset($intropos) && !isset($options['keep']))
+    $filesystem->remove($folder_snapshots);
 shell_exec("chmod -R 777 \"$folder\"");
