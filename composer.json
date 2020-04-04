@@ -3,7 +3,7 @@
     "description": "Take snapshots from a TV recording and find the program title on screen",
     "type": "project",
     "require": {
-        "datagutten/video-tools": "dev-master",
+        "datagutten/video-tools": "^1.0",
         "php-ffmpeg/php-ffmpeg": "^0.14.0",
         "symfony/filesystem": "^4.3",
         "ext-gd": "*",
