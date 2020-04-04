@@ -11,7 +11,6 @@ use Symfony\Component\Filesystem\Filesystem;
 
 require 'vendor/autoload.php';
 $filesystem = new Filesystem();
-$dependcheck=new dependcheck;
 $video=new video;
 $image = new snapshottitle\image();
 
@@ -35,9 +34,6 @@ $folder_base=$pathinfo_infile['dirname'];
 $folder=$folder_base.'/'."snapshots/".$pathinfo_infile['basename'];
 
 $folder_snapshots=$folder.'/2s';
-$folder_crop=$folder.'/crop';
-
-
 
 $xml_config_file = __DIR__.'/snapshottitle_config/'.$options['config'].'.xml';
 if(file_exists($xml_config_file)) {
@@ -49,7 +45,6 @@ if(file_exists($xml_config_file)) {
 }
 
 $duration = $video->duration($file);
-$duration_string = $video->seconds_to_time($duration);
 
 echo "Duration is $duration\n";
 
@@ -139,7 +134,6 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
             $im2 = $image->crop($im,  $crop['x'], $crop['y'], $crop['w'], $crop['h']);
             imagepng($im2, $title_file);
 			$filesystem->copy($imagefile, $title_file_full);
-
         }
         else {
             printf("\nSaving title frame %d\n", $pos);
