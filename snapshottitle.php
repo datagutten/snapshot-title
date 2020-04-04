@@ -3,6 +3,7 @@
 //find /mnt/ext4/opptak/Phineas\ and\ Ferb/2015*.ts -exec php snapshottitle.php --config phineas_ferb_hd {} \;
 //find /mnt/ext4/opptak/24\ timer\ på\ legevakten/2017*.ts -exec php snapshottitle.php --config 24hoursae {} \;
 //find "/mnt/ext4/opptak/Milo Murphys lov" -name "2018*ts" -type f -size +10M -exec php snapshottitle.php -config milo {} \;
+use datagutten\tools\color\color;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
 use Symfony\Component\Filesystem\Filesystem;
@@ -12,16 +13,11 @@ $filesystem = new Filesystem();
 $dependcheck=new dependcheck;
 $video=new video;
 
-require 'color_check.php';
-
 end($argv);
 $file=$argv[key($argv)];
 
 echo "Start: ".basename($file)."\n";
 
-$color_tools=new color;
-
-date_default_timezone_set('GMT');
 $debug=true;
 
 $options = getopt("",array('config:','startpos:', 'noimage', 'multi', 'keep'));
@@ -100,18 +96,7 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
                 $color_debug = false;
         }
 
-		$positions = [];
-        foreach ($xml->{'search'}->{'position'} as $position_xml)
-        {
-            $attributes = $position_xml->attributes();
-            $position = [(int)$attributes->{'x'}, (int)$attributes->{'y'}];
-            if(!empty($attributes->{'color'}))
-                $position['color'] = hexdec($attributes->{'color'});
-            $positions[] = $position;
-        }
-
-		//$check = color_check($im, $positions, $config['color_ref'], $config['limit_low'], $config['limit_high'], $color_debug);
-        $check = color_check($im, $positions, hexdec($xml->{'color'}->{'reference'}), (int)$xml->{'color'}->{'low'}, (int)$xml->{'color'}->{'high'}, $color_debug);
+        $check = color::color_check_xml($im, $xml, $color_debug);
 
 		if($check===false)
 		    continue;

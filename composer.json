@@ -6,7 +6,10 @@
         "datagutten/video-tools": "dev-master",
         "php-ffmpeg/php-ffmpeg": "^0.14.0",
         "symfony/filesystem": "^4.3",
-        "ext-gd": "*"
+        "ext-gd": "*",
+        "ext-simplexml": "*",
+        "ext-libxml": "*",
+        "datagutten/tools": "^1.4"
     },
     "license": "GPL-3.0-or-later",
     "authors": [
