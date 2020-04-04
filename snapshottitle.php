@@ -57,6 +57,8 @@ if(!file_exists($folder_snapshots))
 {
 	$filesystem->mkdir($folder_snapshots);
 }
+else
+	$filesystem->chmod($folder_snapshots, 777);
 
 if(!empty($options['startpos']))
 	$pos = $options['startpos'];
@@ -109,11 +111,7 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
 
 		//$inc=2;
 		$intropos=$pos;
-		if(!file_exists($folder.'/intro/'))
-			mkdir($folder.'/intro/');
-		copy($imagefile,$folder.'/intro/'.basename($imagefile));
-		var_dump($intropos);
-		//continue;
+		$filesystem->copy($imagefile,$folder.'/intro_'.basename($imagefile));
 	}
 	else //Find title
 	{
@@ -145,7 +143,7 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
         }
         else {
             printf("\nSaving title frame %d\n", $pos);
-            copy($imagefile, $title_file);
+            $filesystem->copy($imagefile, $title_file);
         }
 
 	}
@@ -175,4 +173,4 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
 }
 if(isset($intropos) && !isset($options['keep']))
     $filesystem->remove($folder_snapshots);
-shell_exec("chmod -R 777 \"$folder\"");
+$filesystem->chmod($folder, 777, 0000, true);
