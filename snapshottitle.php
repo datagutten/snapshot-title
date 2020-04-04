@@ -122,6 +122,8 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
         }
 
         $title_file = sprintf('%s/z%d.png', $folder, $pos);
+	    $filesystem->mkdir($folder.'/full');
+		$title_file_full = sprintf('%s/full/%d.png', $folder, $pos);
 
         if(isset($xml->{'crop'})) //Crop images to keep only title
         {
@@ -139,6 +141,7 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
             //imagecopy($im2,$im,0,0,$title_x,$title_y,$title_w,$title_h);
             imagecopy($im2, $im, 0, 0, $crop['x'], $crop['y'], $crop['w'], $crop['h']);
             imagepng($im2, $title_file);
+			$filesystem->copy($imagefile, $title_file_full);
 
         }
         else {
