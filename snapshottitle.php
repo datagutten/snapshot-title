@@ -3,6 +3,7 @@
 //find /mnt/ext4/opptak/Phineas\ and\ Ferb/2015*.ts -exec php snapshottitle.php --config phineas_ferb_hd {} \;
 //find /mnt/ext4/opptak/24\ timer\ på\ legevakten/2017*.ts -exec php snapshottitle.php --config 24hoursae {} \;
 //find "/mnt/ext4/opptak/Milo Murphys lov" -name "2018*ts" -type f -size +10M -exec php snapshottitle.php -config milo {} \;
+use datagutten\snapshottitle;
 use datagutten\tools\color\color;
 use FFMpeg\Coordinate\TimeCode;
 use FFMpeg\FFMpeg;
@@ -12,6 +13,7 @@ require 'vendor/autoload.php';
 $filesystem = new Filesystem();
 $dependcheck=new dependcheck;
 $video=new video;
+$image = new snapshottitle\image();
 
 end($argv);
 $file=$argv[key($argv)];
@@ -136,10 +138,7 @@ for($inc=2; $pos<=$duration/2; $pos=$pos+$inc)
 
             printf("\nSaving cropped title frame %d\n", $pos);
             printf("Cropping frame %d X: %d-%d Y: %d-%d\n", $pos, $crop['x'], $crop['x'] + $crop['w'], $crop['y'], $crop['y'] + $crop['h']);
-            //$im2=imagecreatetruecolor($title_w,$title_h);
-            $im2 = imagecreatetruecolor($crop['w'], $crop['h']);
-            //imagecopy($im2,$im,0,0,$title_x,$title_y,$title_w,$title_h);
-            imagecopy($im2, $im, 0, 0, $crop['x'], $crop['y'], $crop['w'], $crop['h']);
+            $im2 = $image->crop($im,  $crop['x'], $crop['y'], $crop['w'], $crop['h']);
             imagepng($im2, $title_file);
 			$filesystem->copy($imagefile, $title_file_full);
 

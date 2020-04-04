@@ -17,5 +17,10 @@
             "name": "datagutten",
             "email": "datagutten@datagutten.net"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": {
+            "datagutten\\snapshottitle\\": "src"
+        }
+    }
 }
